@@ -85,7 +85,7 @@ texts = np.array(alldata['Description'])  # list of text samples
 labels = [0.0,1.0]  # list of label ids
 print('Found %s texts.' % len(texts))
 
-# finally, vectorize the text samples into a 2D integer tensor
+# vectorizing the text samples into a 2D integer tensor
 tokenizer = Tokenizer(num_words=MAX_NB_WORDS)
 tokenizer.fit_on_texts(texts)
 sequences = tokenizer.texts_to_sequences(texts)
@@ -135,15 +135,14 @@ model.add(Embedding(MAX_NB_WORDS, EMBEDDING_DIM, input_length=df.shape[1]))
 model.add(Conv1D(nb_filter=EMBEDDING_DIM, filter_length=5, border_mode='same', activation='relu'))
 model.add(MaxPooling1D(2))
 model.add(Flatten())
-model.add(Dropout(0.9)) #additional
-model.add(Dense(512, activation='relu')) #512 best result
+model.add(Dropout(0.9))
+model.add(Dense(512, activation='relu'))
 model.add(Dense(1, activation='sigmoid'))
 model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 print(model.summary())
 
-model.compile(loss='binary_crossentropy',
-              optimizer='adam',
-              metrics=['acc'])
+model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['acc'])
+
 flag=True
 BATCH=128
 while flag:
@@ -153,12 +152,13 @@ while flag:
     print("Accuracy: %.5f%%" % (scores[1]*100))
     BATCH=BATCH*4
     
+model.save('model.h5')
 
-model.save('model_best.h5')
 def to_labels(x):
     if x > 0.5:  # cutoff
         return "happy"
     return "not_happy"
+
 submission = model.predict(X_test)
 sub=[]
 for i in range(len(submission)):
@@ -167,4 +167,4 @@ for i in range(len(submission)):
 submission_data = pd.DataFrame({'User_ID':test.User_ID, 'Is_Response':sub})
 submission_data['Is_Response'] = submission_data['Is_Response'].map(lambda x: to_labels(x))
 submission_data = submission_data[['User_ID','Is_Response']]
-submission_data.to_csv("submission.csv", index=False) # 0.899 score
+submission_data.to_csv("submission.csv", index=False) # 0.88 score
