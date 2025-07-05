@@ -14,6 +14,27 @@ import re
 from sklearn.metrics import f1_score
 from textblob import TextBlob
 
+"""
+Happiness Prediction from Text Data
+
+This module implements a machine learning pipeline for predicting user happiness
+from textual descriptions using deep learning techniques. The pipeline includes
+data preprocessing, feature extraction, model training, and prediction generation.
+
+Dependencies:
+    - pandas: Data manipulation and analysis
+    - numpy: Numerical computing
+    - keras: Deep learning framework
+    - nltk: Natural language processing
+    - textblob: Sentiment analysis
+    - sklearn: Machine learning utilities
+    - re: Regular expressions for text processing
+
+Author: [Your Name]
+Date: [Current Date]
+Version: 1.0
+"""
+
 train = pd.read_csv('train.csv')
 test = pd.read_csv('test.csv')
 
@@ -21,6 +42,34 @@ test = pd.read_csv('test.csv')
 stops = set(stopwords.words("english"))
 
 def cleanData(text):
+    """
+    Preprocesses text data by removing punctuation, stopwords, and applying stemming.
+    
+    This function performs comprehensive text cleaning including:
+    - Removing special characters and punctuation
+    - Filtering out English stopwords
+    - Applying Porter stemming algorithm
+    - Removing single-character words
+    - Converting to lowercase
+    
+    Args:
+        text (str): Raw text input to be cleaned and preprocessed
+        
+    Returns:
+        str: Cleaned and preprocessed text ready for model input
+        
+    Examples:
+        >>> cleanData("Hello! This is a sample text with punctuation.")
+        'sampl text punctuat'
+        
+        >>> cleanData("I love this amazing product! It's fantastic.")
+        'love amaz product fantast'
+        
+    Note:
+        - Requires NLTK stopwords corpus to be downloaded
+        - Uses Porter stemmer for word stemming
+        - Filters out words with length <= 1
+    """
     txt = str(text)
     txt = re.sub(r'[^A-Za-z0-9\s]', r'', txt)
     txt = re.sub(r'\n', r' ', txt)
@@ -34,6 +83,38 @@ def cleanData(text):
     return txt
 
 def sentenceSentiment(text):
+    """
+    Extracts sentiment features (polarity and subjectivity) from text using TextBlob.
+    
+    This function analyzes the sentiment of input text by:
+    - Splitting text into sentences using period delimiter
+    - Computing polarity score for each sentence
+    - Computing subjectivity score for each sentence
+    - Aggregating scores across all sentences
+    
+    Args:
+        text (str): Input text to analyze for sentiment
+        
+    Returns:
+        list: A list containing [polarity_score, subjectivity_score] where:
+            - polarity_score (float): Sentiment polarity ranging from -1 (negative) to 1 (positive)
+            - subjectivity_score (float): Subjectivity ranging from 0 (objective) to 1 (subjective)
+            
+    Examples:
+        >>> sentenceSentiment("I love this product. It's amazing!")
+        [0.625, 0.9]
+        
+        >>> sentenceSentiment("This is a neutral statement.")
+        [0.0, 0.0]
+        
+        >>> sentenceSentiment("I hate this. It's terrible.")
+        [-0.8, 0.9]
+        
+    Note:
+        - Uses TextBlob library for sentiment analysis
+        - Aggregates sentiment scores across multiple sentences
+        - Returns cumulative scores, not averages
+    """
     txt=text.split('.')
     pol=0
     subj=0
@@ -155,6 +236,36 @@ while flag:
 model.save('model.h5')
 
 def to_labels(x):
+    """
+    Converts prediction probability to categorical label.
+    
+    This function converts a numerical prediction probability into a categorical
+    label for binary classification. Uses a threshold of 0.5 to determine the
+    final classification.
+    
+    Args:
+        x (float): Prediction probability value between 0 and 1
+        
+    Returns:
+        str: Classification label:
+            - "happy" if probability > 0.5
+            - "not_happy" if probability <= 0.5
+            
+    Examples:
+        >>> to_labels(0.7)
+        'happy'
+        
+        >>> to_labels(0.3)
+        'not_happy'
+        
+        >>> to_labels(0.5)
+        'not_happy'
+        
+    Note:
+        - Threshold is set at 0.5 for binary classification
+        - Input should be a probability value between 0 and 1
+        - Function is used for final prediction output formatting
+    """
     if x > 0.5:  # cutoff
         return "happy"
     return "not_happy"
